@@ -1,2 +1,10 @@
-# Where-s-My-Water-
-Aplikasi ini dirancang sebagai proyek akhir mata kuliah Sistem Waktu Nyata dan IOT oleh Kelompok 6.
+# Where-s-My-Water
+
+## 🧑‍💻 Contributors
+
+- [Miranti Anggunsari](https://www.github.com/rantiaaa) - 2106731472
+- Syauqi Auliya Muhammad - 2106707201
+- Reichan Adhiguno -
+- Dimas Dandossi Wicaksono Priambodo - 
+
+---
