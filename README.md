@@ -1,6 +1,4 @@
-# Where-s-My-Water
-
-![WMW logo](https://github.com/user-attachments/assets/d46f1a84-bc2b-4fa3-ad34-749c167ed836)
+# Where-s-My-Water ![WMW logo](https://github.com/user-attachments/assets/d46f1a84-bc2b-4fa3-ad34-749c167ed836)
 
 ## 🧑‍💻 Contributors
 
