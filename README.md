@@ -2,51 +2,59 @@
 **Sistem Penyiraman Tanaman Cerdas**
 
 ## Deskripsi Proyek  
-Proyek ini merupakan sistem otomatis untuk menyiram tanaman berdasarkan tingkat kelembaban tanah yang terdeteksi menggunakan sensor YL-69/FC-28. Sistem ini menggunakan mikrokontroler ESP32 dan terintegrasi dengan platform **Blynk**, sehingga pengguna dapat memantau kondisi tanah secara real-time dan mengontrol pompa air secara manual melalui aplikasi.
+Proyek ini merupakan sistem penyiraman tanaman otomatis berbasis IoT menggunakan **ESP32** dan platform **Blynk**. Sistem bekerja dengan membaca tingkat kelembaban tanah setiap 5 detik menggunakan sensor YL-69/FC-28, mengontrol pompa air secara otomatis berdasarkan ambang batas kelembaban, serta memberikan opsi kontrol manual melalui aplikasi. Sistem ini diimplementasikan menggunakan multitasking FreeRTOS untuk efisiensi.
 
 ---
 
 ## Fitur  
 - 🌡️ **Penyiraman Otomatis**  
-  Sistem akan menyalakan pompa air secara otomatis jika kelembaban tanah berada di bawah ambang batas tertentu.  
+  Pompa air menyala otomatis jika kelembaban tanah di bawah ambang batas yang ditentukan melalui slider di aplikasi Blynk.  
 
 - 📊 **Pemantauan Real-Time**  
-  Pengguna dapat memantau tingkat kelembaban tanah dan status pompa air (ON/OFF) melalui aplikasi Blynk.  
+  Aplikasi Blynk menampilkan tingkat kelembaban tanah dan status pompa air (ON/OFF).  
 
 - 🛠️ **Kontrol Manual**  
-  Pengguna dapat menyalakan atau mematikan pompa air secara manual melalui aplikasi Blynk sesuai kebutuhan.  
+  Pengguna dapat menyalakan/mematikan pompa air secara manual melalui tombol di aplikasi Blynk.  
+
+- ⏳ **Multitasking dengan FreeRTOS**  
+  Sistem menggunakan dua task paralel:  
+  - **TaskSensor**: Membaca sensor kelembaban setiap 5 detik.  
+  - **TaskPump**: Mengatur logika pompa air setiap 0,5 detik.  
 
 ---
 
 ## Komponen Perangkat Keras  
 - **ESP32**: Mikrokontroler untuk pemrosesan data dan komunikasi WiFi.  
 - **Sensor Kelembaban Tanah YL-69/FC-28**: Mengukur tingkat kelembaban tanah.  
-- **Pompa Air**: Untuk menyiram tanaman.  
-- **Modul Relay**: Mengontrol daya pompa air.  
+- **Pompa Air & Modul Relay**: Untuk penyiraman tanaman.  
 - **Catu Daya**: Untuk ESP32 dan pompa.  
-- **WiFi**: Untuk integrasi dengan Blynk.  
+
+---
+
+## Diagram Virtual Pin di Blynk  
+- **V0 (PUMP_BUTTON)**: Tombol untuk mengontrol pompa air secara manual.  
+- **V1 (TRESHOLD_SLIDER)**: Slider untuk mengatur ambang batas kelembaban.  
+- **V2 (MOISTURE_LABEL)**: Label untuk menampilkan tingkat kelembaban tanah.  
+- **V3 (LED_INDICATOR)**: Indikator LED status pompa air (ON/OFF).  
 
 ---
 
 ## Cara Kerja  
 1. **Pengumpulan Data Sensor**  
-   Sensor YL-69 membaca tingkat kelembaban tanah setiap 5 detik menggunakan timer pada ESP32.  
-2. **Pemrosesan Data**  
-   Jika tingkat kelembaban tanah berada di bawah ambang batas, ESP32 akan menyalakan pompa air melalui modul relay.  
-3. **Integrasi Aplikasi**  
-   - Data dari sensor dan status pompa dikirim ke aplikasi Blynk untuk pemantauan.  
-   - Pengguna dapat mengontrol pompa air secara manual melalui antarmuka Blynk.  
+   Task `vTaskSensor` membaca kelembaban tanah setiap 5 detik dan mengirim data ke aplikasi Blynk.  
+
+2. **Logika Pompa**  
+   Task `vTaskPump` menentukan status pompa:  
+   - **Otomatis ON** jika kelembaban < ambang batas (diatur dengan slider).  
+   - **Manual ON/OFF** berdasarkan tombol di aplikasi Blynk.  
+
+3. **Integrasi dengan Blynk**  
+   - Data dari sensor ditampilkan di aplikasi Blynk.  
+   - Kontrol pompa dapat dilakukan secara manual atau otomatis.  
 
 ---
 
-## Perangkat Lunak dan Library  
-- **Arduino IDE**: Untuk memprogram ESP32.  
-- **Library Blynk**: Untuk integrasi dengan platform Blynk.  
-- **Library Timer**: Untuk pembacaan sensor secara berkala.  
-
----
-
-## Langkah Instalasi  
+## Instalasi dan Penggunaan  
 1. Clone repositori ini:  
    ```bash
    git clone https://github.com/username-kamu/where-s-my-water.git
