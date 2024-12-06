@@ -57,4 +57,4 @@ Proyek ini merupakan sistem penyiraman tanaman otomatis berbasis IoT menggunakan
 ## Instalasi dan Penggunaan  
 1. Clone repositori ini:  
    ```bash
-   git clone https://github.com/username-kamu/where-s-my-water.git
+   git clone https://github.com/raaanti/where-s-my-water.git
