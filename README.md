@@ -2,7 +2,7 @@
 **Sistem Penyiraman Tanaman Cerdas**
 
 ## Deskripsi Proyek  
-Proyek ini merupakan sistem penyiraman tanaman otomatis berbasis IoT menggunakan **ESP32** dan platform **Blynk**. Sistem bekerja dengan membaca tingkat kelembaban tanah setiap 5 detik menggunakan sensor YL-69/FC-28, mengontrol pompa air secara otomatis berdasarkan ambang batas kelembaban, serta memberikan opsi kontrol manual melalui aplikasi. Sistem ini diimplementasikan menggunakan multitasking FreeRTOS untuk efisiensi.
+Proyek ini merupakan sistem penyiraman tanaman otomatis berbasis IoT menggunakan **ESP32** dan platform **Blynk**. Sistem bekerja dengan membaca tingkat kelembaban tanah setiap 5 detik menggunakan sensor YL-69, mengontrol pompa air secara otomatis berdasarkan ambang batas kelembaban, serta memberikan opsi kontrol manual melalui aplikasi. Sistem ini diimplementasikan menggunakan multitasking FreeRTOS untuk efisiensi.
 
 ---
 
@@ -25,7 +25,7 @@ Proyek ini merupakan sistem penyiraman tanaman otomatis berbasis IoT menggunakan
 
 ## Komponen Perangkat Keras  
 - **ESP32**: Mikrokontroler untuk pemrosesan data dan komunikasi WiFi.  
-- **Sensor Kelembaban Tanah YL-69/FC-28**: Mengukur tingkat kelembaban tanah.  
+- **Sensor Kelembaban Tanah YL-69**: Mengukur tingkat kelembaban tanah.  
 - **Pompa Air & Modul Relay**: Untuk penyiraman tanaman.  
 - **Catu Daya**: Untuk ESP32 dan pompa.  
 
