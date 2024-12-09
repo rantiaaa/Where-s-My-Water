@@ -20,8 +20,8 @@
 char ssid[] = "find your";
 char pass[] = "treasure";
 
-// Pin Hardware
-const int RELAY_PIN = 32;   // Pin relay
+// Input pin pada ESP32
+const int RELAY_PIN = 32;   // Pin relay untuk pompa
 const int SENSOR_PIN = 33;  // Pin sensor kelembapan
 
 // Waktu NTP
@@ -38,7 +38,7 @@ bool isScheduledOn = false;
 bool isIntervalOn = false;
 
 // Variabel Mode
-int currentMode = 1;  // Default: automatic threshold
+int currentMode = 1;  // Default: automatic with threshold
 int thresholdValue = 30;
 int sensorPercentage = 0;
 
@@ -46,7 +46,8 @@ int scheduleHour = 0, scheduleMinute = 0;
 int intervalMinutes = 0;
 unsigned long lastIntervalTime = 0;
 
-BlynkTimer pumpTimer;  // Timer untuk pompa
+// Timer untuk pompa
+BlynkTimer pumpTimer;
 
 // Fungsi untuk mematikan pompa
 void stopPump() {
@@ -56,25 +57,28 @@ void stopPump() {
   isIntervalOn = false;
 }
 
-// Input dari Blynk
+// Input dari Blynk dalam bentuk mode selection
 BLYNK_WRITE(MODE_SELECTOR) {
   currentMode = param.asInt();
   Serial.print("Mode changed to ");
   Serial.println(currentMode);
 }
 
+// Input dari Blynk dalam bentuk swith untuk mode manual
 BLYNK_WRITE(PUMP_BUTTON) {
   isManuallyOn = param.asInt();
   Serial.print("Manual Pump: ");
   Serial.println(isManuallyOn ? "ON" : "OFF");
 }
 
+// Inpur dari Blynk dalam bentuk slider untuk mengatur nilai threshold
 BLYNK_WRITE(TRESHOLD_SLIDER) {
   thresholdValue = param.asInt();
   Serial.print("New threshold: ");
   Serial.println(thresholdValue);
 }
 
+// Input dari Blynk berupa number input untuk mengatur nilai interval
 BLYNK_WRITE(INTERVAL_SLIDER) {
   intervalMinutes = param.asInt();
   lastIntervalTime = millis();
@@ -83,6 +87,7 @@ BLYNK_WRITE(INTERVAL_SLIDER) {
   Serial.println(" minutes");
 }
 
+// Input dari Blynk berupa jam dan menit untuk mengatur jadwal penyiraman
 BLYNK_WRITE(SCHEDULE_INPUT) {
   TimeInputParam t(param);
   scheduleHour = t.getStartHour();
@@ -105,17 +110,19 @@ void setup() {
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   Serial.println("Mengambil waktu NTP...");
 
-  while (!getLocalTime(&timeinfo)) {  // Loop sampai mendapatkan waktu
+  // Loop sampai mendapatkan waktu
+  while (!getLocalTime(&timeinfo)) {
     Serial.println("Gagal mendapatkan waktu NTP, coba lagi...");
     delay(1000);
   }
   Serial.println("Waktu NTP berhasil didapatkan!");
 
-  // Task multitasking
+  // Multitask untuk mengatur pembacaan sensor dan mengontrol pompa
   xTaskCreatePinnedToCore(vTaskSensor, "TaskSensor", 10000, NULL, 1, NULL, 0);
   xTaskCreatePinnedToCore(vTaskPump, "TaskPump", 10000, NULL, 1, NULL, 1);
 }
 
+// Task untuk mengatur sistem pembacaan sensor
 void vTaskSensor(void *pvParam) {
   while (1) {
     if (!isManuallyOn) {
@@ -131,10 +138,12 @@ void vTaskSensor(void *pvParam) {
         isAutomaticallyOn = false;
       }
     }
-    vTaskDelay(pdMS_TO_TICKS(3000));  // Delay 3 detik
+    // Sensor akan membaca nilai kelembaban tanah setiap 3 detik
+    vTaskDelay(pdMS_TO_TICKS(3000));
   }
 }
 
+// Task untuk mengatur nyala atau matinya pompa
 void vTaskPump(void *pvParam) {
   while (1) {
     if (!getLocalTime(&timeinfo)) {
@@ -178,8 +187,8 @@ void vTaskPump(void *pvParam) {
       Blynk.virtualWrite(LED_INDICATOR, 0);
       Serial.println("Pump OFF");
     }
-
-    vTaskDelay(pdMS_TO_TICKS(1000));  // Update setiap 1s
+    // Update setiap 1 detik
+    vTaskDelay(pdMS_TO_TICKS(1000));
   }
 }
 
