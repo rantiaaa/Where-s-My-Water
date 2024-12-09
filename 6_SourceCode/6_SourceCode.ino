@@ -20,15 +20,17 @@
 char ssid[] = "find your";
 char pass[] = "treasure";
 
-// Input pin pada ESP32
+// Input Pin Pada ESP32
 const int RELAY_PIN = 32;   // Pin relay untuk pompa
 const int SENSOR_PIN = 33;  // Pin sensor kelembapan
 
-// Waktu NTP
+// Variabel untuk Waktu NTP
 const char *ntpServer = "pool.ntp.org";  // Server NTP
 const long gmtOffset_sec = 25200;        // GMT+7
 const int daylightOffset_sec = 0;        // Offset daylight saving time
 struct tm timeinfo;                      // Variabel waktu
+
+TaskHandle_t xHandleInterval;
 
 // Variabel Kontrol Pompa
 bool isPumpOn = false;
@@ -42,9 +44,10 @@ int currentMode = 1;  // Default: automatic with threshold
 int thresholdValue = 30;
 int sensorPercentage = 0;
 
-int scheduleHour = 0, scheduleMinute = 0;
+// Variabel Input Schedule dan Interval
+int scheduleHour = 0;
+int scheduleMinute = 0;
 int intervalMinutes = 0;
-unsigned long lastIntervalTime = 0;
 
 // Timer untuk pompa
 BlynkTimer pumpTimer;
@@ -81,7 +84,7 @@ BLYNK_WRITE(TRESHOLD_SLIDER) {
 // Input dari Blynk berupa number input untuk mengatur nilai interval
 BLYNK_WRITE(INTERVAL_SLIDER) {
   intervalMinutes = param.asInt();
-  lastIntervalTime = millis();
+  //lastIntervalTime = millis();
   Serial.print("New interval: ");
   Serial.print(intervalMinutes);
   Serial.println(" minutes");
@@ -120,6 +123,18 @@ void setup() {
   // Multitask untuk mengatur pembacaan sensor dan mengontrol pompa
   xTaskCreatePinnedToCore(vTaskSensor, "TaskSensor", 10000, NULL, 1, NULL, 0);
   xTaskCreatePinnedToCore(vTaskPump, "TaskPump", 10000, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(vTaskInterval, "TaskInterval", 10000, NULL, 1, &xHandleInterval, 0);
+}
+
+// Task untuk pengaturan interval
+void vTaskInterval(void *pvParam) {
+  while (1) {
+    digitalWrite(RELAY_PIN, LOW);
+    Blynk.virtualWrite(LED_INDICATOR, 1);
+    Serial.println("Pump ON");
+    pumpTimer.setTimeout(15000L, stopPump);
+    vTaskDelay(pdMS_TO_TICKS(intervalMinutes * 60000));
+  }
 }
 
 // Task untuk mengatur sistem pembacaan sensor
@@ -171,17 +186,20 @@ void vTaskPump(void *pvParam) {
     }
 
     // Interval Mode
-    if (currentMode == 3 && millis() - lastIntervalTime >= intervalMinutes * 60000) {
-      isIntervalOn = true;
-      lastIntervalTime = millis();
-      pumpTimer.setTimeout(15000L, stopPump);
+    if (currentMode == 3) {
+      vTaskResume(xHandleInterval);
+
+    } else if (currentMode != 3) {
+      vTaskSuspend(xHandleInterval);
     }
 
     // Kontrol Pompa
-    if ((currentMode == 0 && isManuallyOn) || (currentMode == 1 && isAutomaticallyOn) || (currentMode == 2 && isScheduledOn) || (currentMode == 3 && isIntervalOn)) {
+    if ((currentMode == 0 && isManuallyOn) || (currentMode == 1 && isAutomaticallyOn) || (currentMode == 2 && isScheduledOn)) {
       digitalWrite(RELAY_PIN, LOW);
       Blynk.virtualWrite(LED_INDICATOR, 1);
       Serial.println("Pump ON");
+    } else if (currentMode == 3) {
+      // Mode Interval diatur dengan task interval yang sudah ada
     } else {
       digitalWrite(RELAY_PIN, HIGH);
       Blynk.virtualWrite(LED_INDICATOR, 0);
