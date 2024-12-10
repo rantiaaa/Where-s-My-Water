@@ -134,7 +134,7 @@ void vTaskInterval(void *pvParam) {
     digitalWrite(RELAY_PIN, LOW);
     Blynk.virtualWrite(LED_INDICATOR, 1);
     Serial.println("Pump ON");
-    pumpTimer.setTimeout(1000L, stopPump);
+    pumpTimer.setTimeout(5000L, stopPump);
     vTaskDelay(pdMS_TO_TICKS(intervalMinutes * 60000));
   }
 }
@@ -180,7 +180,7 @@ void vTaskPump(void *pvParam) {
       Serial.println("Pump ON");
       isScheduledOn = true;
       isPumpOn = true;
-      pumpTimer.setTimeout(1000L, stopPump);
+      pumpTimer.setTimeout(15000L, stopPump);
     } else if (currentMode == 2 && currentHour != scheduleHour && currentMinute != scheduleMinute) {
       digitalWrite(RELAY_PIN, HIGH);
       Blynk.virtualWrite(LED_INDICATOR, 0);
