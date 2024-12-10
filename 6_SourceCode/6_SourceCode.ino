@@ -41,8 +41,9 @@ bool isIntervalOn = false;
 
 // Variabel Mode
 int currentMode = 1;  // Default: automatic with threshold
-int thresholdValue = 30;
+int thresholdValue = 0;
 int sensorPercentage = 0;
+int sensorPercentageFinal = 0;
 
 // Variabel Input Schedule dan Interval
 int scheduleHour = 0;
@@ -55,6 +56,7 @@ BlynkTimer pumpTimer;
 // Fungsi untuk mematikan pompa
 void stopPump() {
   digitalWrite(RELAY_PIN, HIGH);
+  Blynk.virtualWrite(LED_INDICATOR, 0);
   Serial.println("Pompa mati (15 detik selesai)");
   isScheduledOn = false;
   isIntervalOn = false;
@@ -122,8 +124,8 @@ void setup() {
 
   // Multitask untuk mengatur pembacaan sensor dan mengontrol pompa
   xTaskCreatePinnedToCore(vTaskSensor, "TaskSensor", 10000, NULL, 1, NULL, 0);
-  xTaskCreatePinnedToCore(vTaskPump, "TaskPump", 10000, NULL, 1, NULL, 1);
-  xTaskCreatePinnedToCore(vTaskInterval, "TaskInterval", 10000, NULL, 1, &xHandleInterval, 0);
+  xTaskCreatePinnedToCore(vTaskInterval, "TaskInterval", 20000, NULL, 1, &xHandleInterval, 0);
+  xTaskCreatePinnedToCore(vTaskPump, "TaskPump", 20000, NULL, 1, NULL, 1);
 }
 
 // Task untuk pengaturan interval
@@ -132,7 +134,7 @@ void vTaskInterval(void *pvParam) {
     digitalWrite(RELAY_PIN, LOW);
     Blynk.virtualWrite(LED_INDICATOR, 1);
     Serial.println("Pump ON");
-    pumpTimer.setTimeout(15000L, stopPump);
+    pumpTimer.setTimeout(1000L, stopPump);
     vTaskDelay(pdMS_TO_TICKS(intervalMinutes * 60000));
   }
 }
@@ -143,11 +145,12 @@ void vTaskSensor(void *pvParam) {
     if (!isManuallyOn) {
       int sensorReading = analogRead(SENSOR_PIN);
       sensorPercentage = map(sensorReading, 0, 4095, 0, 100);
-      Blynk.virtualWrite(MOISTURE_LABEL, sensorPercentage);
+      sensorPercentageFinal = 100 - sensorPercentage;
+      Blynk.virtualWrite(MOISTURE_LABEL, sensorPercentageFinal);
       Serial.print("Moisture: ");
-      Serial.println(sensorPercentage);
+      Serial.println(sensorPercentageFinal);
 
-      if (currentMode == 1 && sensorPercentage < thresholdValue) {
+      if (currentMode == 1 && sensorPercentageFinal < thresholdValue) {
         isAutomaticallyOn = true;
       } else {
         isAutomaticallyOn = false;
@@ -177,7 +180,7 @@ void vTaskPump(void *pvParam) {
       Serial.println("Pump ON");
       isScheduledOn = true;
       isPumpOn = true;
-      pumpTimer.setTimeout(15000L, stopPump);
+      pumpTimer.setTimeout(1000L, stopPump);
     } else if (currentMode == 2 && currentHour != scheduleHour && currentMinute != scheduleMinute) {
       digitalWrite(RELAY_PIN, HIGH);
       Blynk.virtualWrite(LED_INDICATOR, 0);
